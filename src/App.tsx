@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { Analytics } from "@vercel/analytics/react";
 import { db } from "./db/db";
 import { repairIntegrity, SettingsRepository, TaskRepository } from "./db/repositories";
 import { checkAndNotify } from "./lib/notifications";
@@ -397,6 +398,7 @@ export default function App() {
       )}
 
       {toast && <Toast toast={toast} />}
+      <Analytics />
     </div>
   );
 }
