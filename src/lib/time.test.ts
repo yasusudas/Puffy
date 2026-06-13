@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDue, formatOverdue, trashDaysLeft } from "./time";
+import { formatDue, formatOverdue, formatTimeLeft, trashDaysLeft } from "./time";
 
 describe("formatDue", () => {
   const now = new Date(2026, 5, 12, 12, 0);
@@ -20,6 +20,24 @@ describe("formatOverdue", () => {
     expect(formatOverdue(new Date("2026-06-12T11:30:00.000Z").toISOString(), now)).toBe("30分超過");
     expect(formatOverdue(new Date("2026-06-12T07:00:00.000Z").toISOString(), now)).toBe("5時間超過");
     expect(formatOverdue(new Date("2026-06-09T12:00:00.000Z").toISOString(), now)).toBe("3日超過");
+  });
+});
+
+describe("formatTimeLeft", () => {
+  const now = new Date("2026-06-12T12:00:00.000Z");
+
+  it("60分未満は「あとN分」(切り上げ)", () => {
+    expect(formatTimeLeft(new Date("2026-06-12T12:45:00.000Z").toISOString(), now)).toBe("あと45分");
+    expect(formatTimeLeft(new Date("2026-06-12T12:00:30.000Z").toISOString(), now)).toBe("あと1分");
+  });
+
+  it("60分以上は「あとN時間」", () => {
+    expect(formatTimeLeft(new Date("2026-06-12T13:00:00.000Z").toISOString(), now)).toBe("あと1時間");
+  });
+
+  it("期限内でなければ空文字", () => {
+    expect(formatTimeLeft(now.toISOString(), now)).toBe("");
+    expect(formatTimeLeft(new Date("2026-06-12T11:00:00.000Z").toISOString(), now)).toBe("");
   });
 });
 

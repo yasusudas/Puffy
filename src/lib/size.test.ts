@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { balloonDiameter, isOverdue, sizeLevel, sortActiveTasks } from "./size";
+import {
+  balloonDiameter,
+  diameterForProgress,
+  inflationProgress,
+  isImminent,
+  isOverdue,
+  sizeLevel,
+  sortActiveTasks,
+} from "./size";
 import type { Task } from "../types";
 
 const HOUR = 60 * 60 * 1000;
@@ -38,6 +46,56 @@ describe("isOverdue", () => {
     expect(isOverdue(dueIn(1, now), now)).toBe(false);
     expect(isOverdue(now.toISOString(), now)).toBe(true);
     expect(isOverdue(dueIn(-1, now), now)).toBe(true);
+  });
+});
+
+describe("inflationProgress", () => {
+  const now = new Date("2026-06-12T12:00:00.000Z");
+
+  it("膨張開始前は0、期限以降は1", () => {
+    expect(inflationProgress(dueIn(100, now), 72, now)).toBe(0);
+    expect(inflationProgress(now.toISOString(), 72, now)).toBe(1);
+    expect(inflationProgress(dueIn(-3, now), 72, now)).toBe(1);
+  });
+
+  it("progress^2 の連続値を返す (段階化しない)", () => {
+    // progress = 0.5 → 0.25
+    expect(inflationProgress(dueIn(36, now), 72, now)).toBeCloseTo(0.25);
+    // progress = 0.25 → 0.0625
+    expect(inflationProgress(dueIn(54, now), 72, now)).toBeCloseTo(0.0625);
+  });
+});
+
+describe("diameterForProgress", () => {
+  it("進捗0で最小、1で最大 (balloonDiameterのレベル1・10と一致)", () => {
+    expect(diameterForProgress(0, 390)).toBeCloseTo(balloonDiameter(1, 390));
+    expect(diameterForProgress(1, 390)).toBeCloseTo(balloonDiameter(10, 390));
+  });
+
+  it("中間の進捗は線形に補間する", () => {
+    const mid = diameterForProgress(0.5, 390);
+    expect(mid).toBeCloseTo((88 + 136.5) / 2);
+  });
+
+  it("範囲外の進捗は0〜1にクランプする", () => {
+    expect(diameterForProgress(-1, 390)).toBeCloseTo(diameterForProgress(0, 390));
+    expect(diameterForProgress(2, 390)).toBeCloseTo(diameterForProgress(1, 390));
+  });
+});
+
+describe("isImminent", () => {
+  const now = new Date("2026-06-12T12:00:00.000Z");
+  it("残り1時間以内かつ期限内のときtrue", () => {
+    expect(isImminent(dueIn(0.5, now), now)).toBe(true);
+    expect(isImminent(dueIn(1, now), now)).toBe(true);
+  });
+  it("残り1時間より前はfalse", () => {
+    expect(isImminent(dueIn(1.1, now), now)).toBe(false);
+    expect(isImminent(dueIn(5, now), now)).toBe(false);
+  });
+  it("期限ちょうど・超過後はfalse (点滅ではなく超過表示へ)", () => {
+    expect(isImminent(now.toISOString(), now)).toBe(false);
+    expect(isImminent(dueIn(-0.5, now), now)).toBe(false);
   });
 });
 

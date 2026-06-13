@@ -119,6 +119,13 @@ export default function App() {
     }
   }, [folderFilter, folderMap]);
 
+  // レイアウト切替 (デスクトップ⇔モバイル) で検索UIの可視状態が変わるため、
+  // 隠れたクエリでリストが絞り込まれたままにならないよう検索状態をリセットする
+  useEffect(() => {
+    setSearchOpen(false);
+    setSearchQuery("");
+  }, [isDesktop]);
+
   const showToast = useCallback((next: ToastState, duration = UNDO_TOAST_MS) => {
     window.clearTimeout(toastTimer.current);
     setToast(next);

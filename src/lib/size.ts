@@ -3,10 +3,10 @@ import type { Task } from "../types";
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
- * 期限と膨張開始タイミングから10段階のサイズレベルを計算する。
- * 仕様 7.2: eased = progress^2, sizeLevel = clamp(1 + floor(eased * 10), 1, 10)
+ * 膨張開始から期限までの進捗を eased (progress^2) で返す連続値 [0,1]。
+ * sizeLevel の段階化前のなめらかな値で、直径アニメーションに用いる。
  */
-export function sizeLevel(dueAtIso: string, inflationWindowHours: number, now: Date = new Date()): number {
+export function inflationProgress(dueAtIso: string, inflationWindowHours: number, now: Date = new Date()): number {
   const dueAt = new Date(dueAtIso).getTime();
   const startAt = dueAt - inflationWindowHours * HOUR_MS;
   const t = now.getTime();
@@ -16,12 +16,33 @@ export function sizeLevel(dueAtIso: string, inflationWindowHours: number, now: D
   else if (t >= dueAt) progress = 1;
   else progress = (t - startAt) / (dueAt - startAt);
 
-  const eased = progress * progress;
+  return progress * progress;
+}
+
+/**
+ * 期限と膨張開始タイミングから10段階のサイズレベルを計算する。
+ * 仕様 7.2: eased = progress^2, sizeLevel = clamp(1 + floor(eased * 10), 1, 10)
+ */
+export function sizeLevel(dueAtIso: string, inflationWindowHours: number, now: Date = new Date()): number {
+  const eased = inflationProgress(dueAtIso, inflationWindowHours, now);
   return Math.min(10, Math.max(1, 1 + Math.floor(eased * 10)));
 }
 
 export function isOverdue(dueAtIso: string, now: Date = new Date()): boolean {
   return now.getTime() >= new Date(dueAtIso).getTime();
+}
+
+/** 点滅で緊急を知らせる残り時間 (期限の1時間前から) */
+export const IMMINENT_WINDOW_HOURS = 1;
+
+/**
+ * 期限まで残り1時間以内で、まだ期限内のタスク。
+ * サイズ変化だけでは気づきにくい締切直前を点滅で強調するための判定。
+ */
+export function isImminent(dueAtIso: string, now: Date = new Date()): boolean {
+  const due = new Date(dueAtIso).getTime();
+  const t = now.getTime();
+  return t < due && due - t <= IMMINENT_WINDOW_HOURS * HOUR_MS;
 }
 
 /**
@@ -36,6 +57,19 @@ export function balloonDiameter(level: number, fieldWidth: number): number {
   const max = Math.max(88, Math.min(fieldWidth * 0.35, 160));
   const min = Math.min(Math.max(88, refWidth * 0.19), max);
   return min + ((max - min) * (level - 1)) / 9;
+}
+
+/**
+ * 連続進捗 (inflationProgress の戻り値 [0,1]) から直径を求める。
+ * 期限変更時の直径アニメーションを段階の境目でカクつかせないために使う。
+ * 端点 (0→最小, 1→最大) は balloonDiameter のレベル1・10と一致する。
+ */
+export function diameterForProgress(easedProgress: number, fieldWidth: number): number {
+  const refWidth = Math.min(fieldWidth, 480);
+  const max = Math.max(88, Math.min(fieldWidth * 0.35, 160));
+  const min = Math.min(Math.max(88, refWidth * 0.19), max);
+  const p = Math.min(1, Math.max(0, easedProgress));
+  return min + (max - min) * p;
 }
 
 /** 並び順: 期限超過が先頭、次に期限が近い順、同じ期限なら更新が新しい順 */

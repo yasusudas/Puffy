@@ -43,6 +43,16 @@ export function formatOverdue(dueIso: string, now: Date = new Date()): string {
   return `${days}日超過`;
 }
 
+/** 期限までの残り時間表示 (例: あと45分, あと1時間) — 期限内のみ */
+export function formatTimeLeft(dueIso: string, now: Date = new Date()): string {
+  const ms = new Date(dueIso).getTime() - now.getTime();
+  if (ms <= 0) return "";
+  const minutes = Math.ceil(ms / 60000);
+  if (minutes < 60) return `あと${minutes}分`;
+  const hours = Math.floor(minutes / 60);
+  return `あと${hours}時間`;
+}
+
 /** ゴミ箱の残り保持日数 (切り上げ、0〜retentionDaysにクランプ) */
 export function trashDaysLeft(deletedAtIso: string, retentionDays: number, now: Date = new Date()): number {
   const expire = new Date(deletedAtIso).getTime() + retentionDays * 24 * 60 * 60 * 1000;

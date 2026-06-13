@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Folder, Task } from "../types";
 import { colorHex, textColorFor, UNFILED_COLOR, WARNING_COLOR } from "../lib/colors";
-import { formatDue, formatOverdue } from "../lib/time";
-import { balloonDiameter, isOverdue, sizeLevel } from "../lib/size";
+import { formatDue, formatOverdue, formatTimeLeft } from "../lib/time";
+import { diameterForProgress, inflationProgress } from "../lib/size";
 import { BalloonEngine, generateInitialLayout } from "../physics/engine";
 
 const TAP_THRESHOLD_PX = 8;
 const POP_DURATION_MS = 420;
+// 期限変更後、旧デザインから新デザインへ遷移させる時間
+const DUE_ANIM_DURATION_MS = 7000;
+const IMMINENT_MS = 60 * 60 * 1000;
+
+/** 期限変更アニメーションのイージング (緩急のある滑らかな遷移) */
+function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
 
 interface BalloonFieldProps {
   tasks: Task[]; // 優先度順にソート済み
@@ -50,6 +58,58 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
   const [bursts, setBursts] = useState<ShardBurst[]>([]);
   const seenPopping = useRef(new Set<string>());
 
+  // 期限変更アニメーション: id ごとに「変更前の期限」から実効期限を補間する
+  const animsRef = useRef(new Map<string, { fromDueMs: number; startPerf: number }>());
+  const lastDueRef = useRef(new Map<string, number>());
+  const animRafRef = useRef<number | null>(null);
+  const [frame, setFrame] = useState(0);
+
+  // 期限の変化を検知してアニメーションを登録 (描画中に同期実行し、変更直後の
+  // フレームから「変更前デザイン」で開始されるようにする)
+  useMemo(() => {
+    const perf = performance.now();
+    const seen = new Set<string>();
+    for (const task of tasks) {
+      seen.add(task.id);
+      const dueMs = new Date(task.dueAt).getTime();
+      const prev = lastDueRef.current.get(task.id);
+      if (prev === undefined) {
+        // 初出 (新規作成・タブ切替) はアニメーションせず即時表示
+        lastDueRef.current.set(task.id, dueMs);
+      } else if (prev !== dueMs) {
+        animsRef.current.set(task.id, { fromDueMs: prev, startPerf: perf });
+        lastDueRef.current.set(task.id, dueMs);
+      }
+    }
+    for (const id of Array.from(lastDueRef.current.keys())) {
+      if (!seen.has(id)) {
+        lastDueRef.current.delete(id);
+        animsRef.current.delete(id);
+      }
+    }
+  }, [tasks]);
+
+  // アニメーション中は毎フレーム再描画し、終了したら停止する
+  useEffect(() => {
+    if (animsRef.current.size === 0 || animRafRef.current !== null) return;
+    const loop = () => {
+      const perf = performance.now();
+      for (const [id, a] of animsRef.current) {
+        if (perf - a.startPerf >= DUE_ANIM_DURATION_MS) animsRef.current.delete(id);
+      }
+      setFrame((f) => f + 1);
+      animRafRef.current = animsRef.current.size > 0 ? requestAnimationFrame(loop) : null;
+    };
+    animRafRef.current = requestAnimationFrame(loop);
+  });
+
+  useEffect(
+    () => () => {
+      if (animRafRef.current !== null) cancelAnimationFrame(animRafRef.current);
+    },
+    [],
+  );
+
   // フィールド幅の監視
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -71,29 +131,54 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
     return () => mq.removeEventListener("change", apply);
   }, [engine]);
 
-  // 風船ごとの表示パラメータ
+  // 風船ごとの表示パラメータ。
+  // 期限が変更された風船は「実効期限」を変更前→変更後へ7秒かけて補間し、
+  // サイズ・色・期限超過/まもなく表示・残り時間ラベルをそれに連動させる。
+  // 期限の絶対表示とaria-labelは実際の値で即時更新する (誤読防止)。
   const balloons = useMemo(() => {
+    const perf = performance.now();
+    const nowMs = now.getTime();
     return tasks.map((task) => {
-      const overdue = isOverdue(task.dueAt, now);
-      const level = sizeLevel(task.dueAt, task.inflationWindowHours, now);
-      const diameter = width > 0 ? balloonDiameter(level, width) : 100;
+      const realDueMs = new Date(task.dueAt).getTime();
+      const anim = animsRef.current.get(task.id);
+      let effDueMs = realDueMs;
+      if (anim) {
+        const t = (perf - anim.startPerf) / DUE_ANIM_DURATION_MS;
+        if (t < 1) {
+          effDueMs = anim.fromDueMs + (realDueMs - anim.fromDueMs) * easeInOutCubic(t);
+        }
+      }
+      const effIso = new Date(effDueMs).toISOString();
+      const overdue = nowMs >= effDueMs;
+      const imminent = !overdue && effDueMs - nowMs <= IMMINENT_MS;
+      const eased = inflationProgress(effIso, task.inflationWindowHours, now);
+      const diameter = width > 0 ? diameterForProgress(eased, width) : 100;
       const folder = task.folderId ? folders.get(task.folderId) : undefined;
       const baseColor = folder ? colorHex(folder.colorId) : UNFILED_COLOR;
       const color = overdue ? WARNING_COLOR : baseColor;
       return {
         task,
         overdue,
-        level,
+        imminent,
         diameter,
         color,
         textColor: textColorFor(color),
         folderName: folder?.name ?? "未分類",
         folderColor: baseColor,
+        dueText: formatDue(task.dueAt, now),
+        overdueText: formatOverdue(effIso, now),
+        imminentText: formatTimeLeft(effIso, now),
+        realOverdue: nowMs >= realDueMs,
+        realImminent: nowMs < realDueMs && realDueMs - nowMs <= IMMINENT_MS,
       };
     });
-  }, [tasks, folders, now, width]);
+    // frame はアニメーション中の毎フレーム再計算のためのトリガー
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, folders, now, width, frame]);
 
-  const idsKey = useMemo(() => tasks.map((t) => t.id).join("|"), [tasks]);
+  // 配置の再生成は構成 (idの集合) が変わった時のみ。期限変更による並び替えで
+  // 全風船が初期位置へ瞬間移動しないよう、順序非依存のキーにする。
+  const idsKey = useMemo(() => tasks.map((t) => t.id).sort().join("|"), [tasks]);
 
   // 初期配置の生成 (タスク構成や幅が変わった時のみ)
   useEffect(() => {
@@ -222,8 +307,9 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
           const popping = poppingIds.has(b.task.id);
           const ariaLabel = [
             b.task.title,
-            `期限 ${formatDue(b.task.dueAt, now)}`,
-            b.overdue ? `期限超過 ${formatOverdue(b.task.dueAt, now)}` : null,
+            `期限 ${b.dueText}`,
+            b.realOverdue ? `期限超過 ${formatOverdue(b.task.dueAt, now)}` : null,
+            b.realImminent ? `まもなく期限 ${formatTimeLeft(b.task.dueAt, now)}` : null,
             `フォルダ ${b.folderName}`,
           ]
             .filter(Boolean)
@@ -232,13 +318,22 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
             <div
               key={b.task.id}
               ref={(el) => {
-                if (el) elRefs.current.set(b.task.id, el);
-                else elRefs.current.delete(b.task.id);
+                if (el) {
+                  elRefs.current.set(b.task.id, el);
+                  // 位置はRAFが --tx/--ty で制御する。再描画でリセットしないよう
+                  // インラインstyleには持たせず、未設定時のみ初期化する。
+                  if (!el.style.getPropertyValue("--tx")) {
+                    el.style.setProperty("--tx", "0px");
+                    el.style.setProperty("--ty", "0px");
+                  }
+                } else {
+                  elRefs.current.delete(b.task.id);
+                }
               }}
               role="button"
               tabIndex={0}
               aria-label={ariaLabel}
-              className={`balloon${b.overdue ? " overdue" : ""}${popping ? " popping" : ""}`}
+              className={`balloon${b.overdue ? " overdue" : ""}${b.imminent ? " imminent" : ""}${popping ? " popping" : ""}`}
               style={
                 {
                   width: d,
@@ -248,8 +343,6 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
                   color: b.textColor,
                   transform: "translate(var(--tx), var(--ty))",
                   "--balloon-color": b.color,
-                  "--tx": "0px",
-                  "--ty": "0px",
                 } as React.CSSProperties
               }
               onPointerDown={(e) => handlePointerDown(e, b.task.id)}
@@ -265,11 +358,16 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
             >
               {b.overdue && (
                 <span className="balloon-overdue-label">
-                  期限超過 {formatOverdue(b.task.dueAt, now)}
+                  期限超過 {b.overdueText}
+                </span>
+              )}
+              {b.imminent && (
+                <span className="balloon-imminent-label">
+                  まもなく期限 {b.imminentText}
                 </span>
               )}
               <span className="balloon-title">{b.task.title}</span>
-              <span className="balloon-due">{formatDue(b.task.dueAt, now)}</span>
+              <span className="balloon-due">{b.dueText}</span>
               {b.overdue && b.task.folderId && (
                 <span
                   className="balloon-folder-tag"
@@ -278,6 +376,9 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
                   {b.folderName}
                 </span>
               )}
+              <svg className="balloon-string" viewBox="0 0 18 38" aria-hidden="true">
+                <path d="M9 0 C 2 11, 16 22, 9 38" />
+              </svg>
             </div>
           );
         })}
