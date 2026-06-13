@@ -22,6 +22,12 @@ const DAMPING = 1.4; // 速度減衰
 const COLLISION_GAP = 4; // 風船同士の最小間隔
 const MAX_SPEED = 900;
 const EDGE_PAD = 6;
+// 指を離した後に残る慣性の割合。ヘリウム風船は空気抵抗で勢いをほぼ失うため小さくする
+const RELEASE_INERTIA = 0.12;
+// 指を離した直後の速度上限 (px/s)。スパイク混じりの入力でも勢いよく飛ばさない
+const MAX_RELEASE_SPEED = 180;
+// 衝突反発などで生じる速度の上限 (px/s)。重なり解消時の暴走を防ぎ緩やかに収める
+const MAX_SETTLE_SPEED = 260;
 
 export class BalloonEngine {
   bodies = new Map<string, BalloonBody>();
@@ -88,10 +94,9 @@ export class BalloonEngine {
     const b = this.bodies.get(id);
     if (!b) return;
     b.dragging = false;
-    // 指を離した後の弱い慣性 (上限あり)
-    const scale = 0.6;
-    b.vx = clamp(vx * scale, -MAX_SPEED, MAX_SPEED);
-    b.vy = clamp(vy * scale, -MAX_SPEED, MAX_SPEED);
+    // 指を離した後の弱い慣性。ヘリウム風船らしく勢いをほぼ残さず緩やかに浮かせる
+    b.vx = clamp(vx * RELEASE_INERTIA, -MAX_RELEASE_SPEED, MAX_RELEASE_SPEED);
+    b.vy = clamp(vy * RELEASE_INERTIA, -MAX_RELEASE_SPEED, MAX_RELEASE_SPEED);
   }
 
   step(dt: number) {
@@ -127,6 +132,13 @@ export class BalloonEngine {
       }
     }
 
+    // 衝突反発で得た速度を緩やかな上限に収める (重なり解消時の高速な吹き飛びを防ぐ)
+    for (const b of bodies) {
+      if (b.dragging) continue;
+      b.vx = clamp(b.vx, -MAX_SETTLE_SPEED, MAX_SETTLE_SPEED);
+      b.vy = clamp(b.vy, -MAX_SETTLE_SPEED, MAX_SETTLE_SPEED);
+    }
+
     // 境界を貫通させない
     for (const b of bodies) {
       const minX = b.r + EDGE_PAD;
@@ -159,8 +171,8 @@ export class BalloonEngine {
     b.x += nx * overlap * bWeight;
     b.y += ny * overlap * bWeight;
 
-    // 互いに押し合う反発速度
-    const push = overlap * 6;
+    // 互いに押し合う反発速度。深い重なりでも暴走しないよう上限付きで弱める
+    const push = Math.min(overlap, 24) * 3.5;
     if (!a.dragging) {
       a.vx -= nx * push * bWeight;
       a.vy -= ny * push * bWeight;
