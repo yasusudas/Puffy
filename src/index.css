@@ -461,7 +461,7 @@ select {
   top: calc(100% + 3px);
   left: 50%;
   width: 18px;
-  height: 38px;
+  height: 64px;
   transform: translateX(-50%);
   overflow: visible;
   pointer-events: none;
@@ -469,10 +469,11 @@ select {
 
 .balloon-string path {
   fill: none;
-  stroke: var(--balloon-color, #64748b);
-  stroke-width: 1.6;
+  /* 風船の色に依らず紐は白で統一する */
+  stroke: #ffffff;
+  stroke-width: 2;
   stroke-linecap: round;
-  opacity: 0.7;
+  opacity: 0.9;
 }
 
 .balloon-title {
@@ -893,11 +894,16 @@ select {
   background: rgba(255, 255, 255, 0.9);
 }
 
-.color-swatch-default {
+/* 「自動」スウォッチも他の色スウォッチと同じ正方形・角丸に統一する。
+   セレクタを .color-swatches 配下にして特異度を上げ、後段のフォルダ管理用
+   .color-swatch 定義 (正方形) に上書きされないようにする。 */
+.color-swatches .color-swatch-default {
   width: auto;
-  min-width: 44px;
-  height: 32px;
-  border-radius: 16px;
+  height: auto;
+  aspect-ratio: 1;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 3px solid var(--border);
   background: var(--surface);
   color: var(--text-sub);
   font-size: 12px;

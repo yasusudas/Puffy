@@ -361,8 +361,8 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
                   {b.folderName}
                 </span>
               )}
-              <svg className="balloon-string" viewBox="0 0 18 38" aria-hidden="true">
-                <path d="M9 0 C 2 11, 16 22, 9 38" />
+              <svg className="balloon-string" viewBox="0 0 18 64" aria-hidden="true">
+                <path d="M9 0 C 2 19, 16 40, 9 64" />
               </svg>
             </div>
           );
