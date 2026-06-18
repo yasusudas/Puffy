@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { backupFileName, validateBackup } from "./backup";
 
 const validBackup = {
-  app: "PopTask",
+  app: "Puffy",
   schemaVersion: 1,
   exportedAt: "2026-06-13T00:00:00.000Z",
   tasks: [
@@ -64,8 +64,13 @@ describe("validateBackup", () => {
 });
 
 describe("backupFileName", () => {
-  it("poptask-backup-YYYYMMDD-HHmmss.json 形式", () => {
+  it("puffy-backup-YYYYMMDD-HHmmss.json 形式", () => {
     const name = backupFileName(new Date(2026, 5, 13, 9, 5, 3));
-    expect(name).toBe("poptask-backup-20260613-090503.json");
+    expect(name).toBe("puffy-backup-20260613-090503.json");
+  });
+
+  it("旧PopTask形式のバックアップも受け入れる", () => {
+    const legacy = { ...validBackup, app: "PopTask" };
+    expect(validateBackup(JSON.stringify(legacy)).ok).toBe(true);
   });
 });

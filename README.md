@@ -1,4 +1,4 @@
-# PopTask
+# Puffy
 
 タスクを風船として表示するローカルファーストのタスク管理アプリ (MVP)。
 
@@ -41,4 +41,4 @@ npm run build     # 型チェック + プロダクションビルド (Service Wo
 npm run test:e2e  # E2Eテスト (ビルド + プレビューサーバーを自動起動)
 ```
 
-詳細仕様は `docs/PopTaskSpec.md` を参照してください。
+詳細仕様は `docs/PuffySpec.md` を参照してください。

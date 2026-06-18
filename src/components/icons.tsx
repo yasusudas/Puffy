@@ -2,7 +2,7 @@ interface IconProps {
   size?: number;
 }
 
-/** PopTaskロゴ (自作SVG・権利クリーン) */
+/** Puffyロゴ (自作SVG・権利クリーン) */
 export function BalloonLogo({ size = 26 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">

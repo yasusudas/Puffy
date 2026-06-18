@@ -1,4 +1,4 @@
-# PopTask
+# Puffy
 
 タスクを風船として表示するローカルファーストのタスク管理アプリ (React 19 + TypeScript + Vite)。データはブラウザの IndexedDB にのみ保存され、バックエンドや外部サービスは不要です。
 

@@ -413,7 +413,7 @@ export default function App() {
               <>
                 <h1>
                   <BalloonLogo />
-                  PopTask
+                  Puffy
                 </h1>
                 <button
                   type="button"

@@ -1,6 +1,6 @@
 {
-  "name": "PopTask",
-  "short_name": "PopTask",
+  "name": "Puffy",
+  "short_name": "Puffy",
   "description": "タスクを風船として表示するローカルファーストのタスク管理アプリ",
   "start_url": "/",
   "display": "standalone",

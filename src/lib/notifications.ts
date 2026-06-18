@@ -69,7 +69,7 @@ export async function checkAndNotify(lastCheckedAt: Date, now: Date = new Date()
       const receiptId = `${task.id}:${task.dueAt}:${offset}`;
       const existing = await db.notificationReceipts.get(receiptId);
       if (existing) continue;
-      await showNotification(`PopTask: ${task.title}`, {
+      await showNotification(`Puffy: ${task.title}`, {
         body: `${offsetLabel(offset)} (期限 ${formatDue(task.dueAt, now)})`,
         tag: receiptId,
       });

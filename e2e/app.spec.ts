@@ -18,7 +18,7 @@ async function createTask(page: Page, title: string, dueInHours: number): Promis
 
 test("タスクを作成し、完了して完了一覧へ移動できる", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("PopTask")).toBeVisible();
+  await expect(page.getByText("Puffy")).toBeVisible();
 
   await createTask(page, "E2Eテストのタスク", 26);
 
@@ -99,7 +99,7 @@ test("風船には紐 (balloon-string) が描画される", async ({ page }) => 
 
 test("初回読み込み後、オフラインでアプリを再起動できる", async ({ page, context }) => {
   await page.goto("/");
-  await expect(page.getByText("PopTask")).toBeVisible();
+  await expect(page.getByText("Puffy")).toBeVisible();
 
   // Service Workerの有効化を待つ (インストール時にプリキャッシュ完了済み。
   // 初回ロードのページはSWの管理下に入らないが、以降のナビゲーションはSWが処理する)
@@ -109,7 +109,7 @@ test("初回読み込み後、オフラインでアプリを再起動できる",
 
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByText("PopTask")).toBeVisible();
+  await expect(page.getByText("Puffy")).toBeVisible();
   // ローカルデータ (IndexedDB) もオフラインで読める
   await expect(page.locator(".balloon", { hasText: "オフライン確認タスク" })).toBeVisible();
   await context.setOffline(false);

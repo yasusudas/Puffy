@@ -5,7 +5,7 @@ import { nowIso } from "./time";
 import { SCHEMA_VERSION, type Folder, type Settings, type Task } from "../types";
 
 export interface BackupFile {
-  app: "PopTask";
+  app: "Puffy";
   schemaVersion: number;
   exportedAt: string;
   tasks: Task[];
@@ -15,7 +15,7 @@ export interface BackupFile {
 
 export function backupFileName(now: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `poptask-backup-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.json`;
+  return `puffy-backup-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.json`;
 }
 
 export async function exportBackup(): Promise<{ json: string; fileName: string }> {
@@ -27,7 +27,7 @@ export async function exportBackup(): Promise<{ json: string; fileName: string }
     SettingsRepository.get(),
   ]);
   const backup: BackupFile = {
-    app: "PopTask",
+    app: "Puffy",
     schemaVersion: SCHEMA_VERSION,
     exportedAt: nowIso(),
     tasks,
@@ -57,7 +57,9 @@ export function validateBackup(json: string): { ok: true; data: ValidatedBackup 
   }
   if (typeof raw !== "object" || raw === null) return { ok: false, error: "JSONのルートがオブジェクトではありません。" };
   const data = raw as Record<string, unknown>;
-  if (data.app !== "PopTask") return { ok: false, error: "PopTaskのバックアップファイルではありません。" };
+  if (data.app !== "Puffy" && data.app !== "PopTask") {
+    return { ok: false, error: "Puffyのバックアップファイルではありません。" };
+  }
   if (data.schemaVersion !== SCHEMA_VERSION) {
     return { ok: false, error: `未対応のスキーマバージョンです (${String(data.schemaVersion)})。` };
   }

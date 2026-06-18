@@ -22,7 +22,7 @@ export function Sidebar({ tab, view, activeCount, overdueCount, onSelectTab, onO
     <aside className="sidebar">
       <div className="sidebar-logo">
         <BalloonLogo size={30} />
-        <span>PopTask</span>
+        <span>Puffy</span>
       </div>
       <nav className="sidebar-nav" aria-label="主タブ">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
