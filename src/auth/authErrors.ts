@@ -21,7 +21,13 @@ export function authErrorMessage(code: string): string {
     case "auth/unauthorized-domain":
       return "このドメインは Firebase で認証が許可されていません。コンソールの承認済みドメインに追加してください。";
     case "auth/account-exists-with-different-credential":
-      return "同じメールアドレスで別の方法のログインが既に登録されています。";
+      return "同じメールアドレスで別の方法のログインが既に登録されています。元の方法でログイン後、設定から連携してください。";
+    case "auth/provider-already-linked":
+      return "このログイン方法は既に連携済みです。";
+    case "auth/credential-already-in-use":
+      return "このログイン方法は別のアカウントで使われています。";
+    case "auth/requires-recent-login":
+      return "セキュリティのため、一度ログアウトしてから再度ログインしてから連携してください。";
     default:
       return "認証に失敗しました。時間をおいて再度お試しください。";
   }

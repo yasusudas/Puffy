@@ -15,6 +15,7 @@ import {
 import { SettingsRepository, TaskRepository } from "../db/repositories";
 import { useAuth } from "../auth/AuthContext";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { LinkedProvidersSettings } from "./LinkedProvidersSettings";
 
 interface SettingsScreenProps {
   notificationsEnabled: boolean;
@@ -108,6 +109,7 @@ export function SettingsScreen({ notificationsEnabled, onNotify, userEmail }: Se
             <span>ログイン中</span>
             <span className="account-email">{userEmail}</span>
           </div>
+          <LinkedProvidersSettings onNotify={onNotify} />
           <button
             type="button"
             className="button-secondary"
