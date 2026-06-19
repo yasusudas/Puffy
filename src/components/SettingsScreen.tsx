@@ -197,10 +197,16 @@ export function SettingsScreen({ notificationsEnabled, onNotify, userEmail }: Se
           <span>データスキーマバージョン</span>
           <span>{SCHEMA_VERSION}</span>
         </div>
+        <div className="settings-row">
+          <span>クラウド同期</span>
+          <span className={`permission-badge ${authEnabled ? "granted" : "denied"}`}>
+            {authEnabled ? "有効" : "オフ"}
+          </span>
+        </div>
         <p>
           {authEnabled
             ? "データはクラウドとこの端末の両方に保存されます。JSONエクスポートはバックアップ用です。"
-            : "データはこのブラウザとこの端末にのみ保存されます。端末の変更やブラウザデータの削除に備えて、定期的なJSONエクスポートをおすすめします。"}
+            : "クラウド同期がオフです。`.env.local` を設定し、`npm run dev` を再起動するとログイン画面が表示されます。"}
         </p>
       </section>
 

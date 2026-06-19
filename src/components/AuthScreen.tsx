@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BalloonLogo, GoogleIcon } from "./icons";
 import { useAuth } from "../auth/AuthContext";
+import { hasLocalData } from "../sync/syncEngine";
 
 type AuthMode = "login" | "signup" | "reset";
 
@@ -12,6 +13,11 @@ export function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [localDataExists, setLocalDataExists] = useState(false);
+
+  useEffect(() => {
+    void hasLocalData().then(setLocalDataExists);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +65,12 @@ export function AuthScreen() {
           <h2>
             {mode === "login" ? "ログイン" : mode === "signup" ? "新規登録" : "パスワード再設定"}
           </h2>
+
+          {localDataExists && mode !== "reset" && (
+            <p className="auth-local-hint">
+              この端末に保存済みのタスクがあります。ログインするとクラウドに同期できます。
+            </p>
+          )}
 
           <div className="field-group">
             <label htmlFor="auth-email">メールアドレス</label>

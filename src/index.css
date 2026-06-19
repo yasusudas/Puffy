@@ -1393,6 +1393,16 @@ select {
   color: var(--success);
 }
 
+.auth-local-hint {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.6;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
 .auth-links {
   display: flex;
   flex-direction: column;
