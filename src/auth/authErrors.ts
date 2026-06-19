@@ -83,8 +83,14 @@ export function formatFirebaseAuthError(
     if (raw.includes("not enabled for consumers") || raw.includes("unauthorized_client")) {
       return "Microsoft の個人アカウントが拒否されています。Azure のアプリ登録で「所属する組織のみ」ではなく「任意の組織ディレクトリと個人用 Microsoft アカウント」を選んで保存してください。";
     }
+    if (raw.includes("unverified") || raw.includes("publisher") || raw.includes("aadsts65005")) {
+      return "Microsoft が「未検証のパブリッシャー」としてブロックしています。Azure → ブランド化とプロパティ → パブリッシャーのドメインを設定するか、MPN ID でパブリッシャー検証を行ってください。個人開発の場合は下記「未検証パブリッシャー」を参照。";
+    }
     if (raw.includes("aadsts50194")) {
       return "Azure アプリがシングルテナントのままです。「マルチテナント + 個人用 Microsoft アカウント」に変更するか、アプリ登録を作り直してください。";
+    }
+    if (raw.includes("aadsts50020")) {
+      return "この Microsoft アカウントはアプリのテナント設定と一致しません。Azure の「サポートされているアカウントの種類」と Firebase の tenant 設定（common）を確認してください。";
     }
     if (raw.includes("aadsts5000225")) {
       return "Azure テナントが停止されています。新しいテナントでアプリ登録をやり直し、Firebase に新しい ID / シークレットを登録してください。";
@@ -92,6 +98,16 @@ export function formatFirebaseAuthError(
     if (raw.includes("aadsts50011") || raw.includes("redirect_uri")) {
       return "Azure のリダイレクト URI が一致していません。Web プラットフォームに https://puffy-dc442.firebaseapp.com/__/auth/handler を追加してください。";
     }
+    if (raw.includes("invalid_client") || raw.includes("client_secret")) {
+      return "Firebase の Microsoft シークレットが正しくありません。Azure で新しいクライアントシークレットを作成し、Firebase Console に貼り直してください（前後の空白なし）。";
+    }
+
+    const base = authErrorMessage(error.code ?? "unknown", context, providerId);
+    const detail = (error.message ?? "").trim();
+    if (detail && detail !== base) {
+      return `${base}（詳細: ${detail}）`;
+    }
+    return base;
   }
 
   return authErrorMessage(error.code ?? "unknown", context, providerId);
