@@ -1061,12 +1061,17 @@ select {
   background: var(--surface-hover);
 }
 
+.task-detail-delete {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 12px;
+}
+
 .button-text-danger {
   min-height: 44px;
   color: var(--text-faint);
   font-size: 13px;
   text-decoration: underline;
-  align-self: center;
 }
 
 .button-text-danger:hover {
