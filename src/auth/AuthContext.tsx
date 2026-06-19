@@ -97,7 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithMicrosoft = useCallback(async () => {
     if (!auth) throw new Error("Auth is not initialized");
     const provider = new OAuthProvider("microsoft.com");
-    provider.setCustomParameters({ prompt: "select_account" });
+    // common = 個人アカウント (outlook.com 等) + 職場アカウント両方
+    provider.setCustomParameters({ prompt: "select_account", tenant: "common" });
     await signInWithProvider(auth, provider);
   }, []);
 

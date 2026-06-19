@@ -39,21 +39,40 @@ https://puffy-dc442.firebaseapp.com/__/auth/handler
 1. [Authentication → Sign-in method](https://console.firebase.google.com/project/puffy-dc442/authentication/providers)
 2. **Microsoft** を選択 → **有効にする**
 
-### 2. Azure でアプリ登録（Firebase が案内する場合）
+### 2. Azure でアプリ登録
 
-Firebase 画面に表示される手順に従うか、[Azure Portal](https://portal.azure.com/) で:
+[Azure Portal](https://portal.azure.com/) で **有効なテナント** にサインインしてから:
 
 1. **Microsoft Entra ID** → **アプリの登録** → **新規登録**
 2. 名前: `Puffy`
-3. リダイレクト URI: **Web** → `https://puffy-dc442.firebaseapp.com/__/auth/handler`
-4. 登録後、**アプリケーション (クライアント) ID** をコピー
-5. **証明書とシークレット** → **新しいクライアント シークレット** を作成してコピー
+3. **サポートされているアカウントの種類**:  
+   **「任意の組織ディレクトリ内のアカウントと個人用 Microsoft アカウント」** を選択（個人の Outlook 等も使える）
+4. リダイレクト URI: **Web** → `https://puffy-dc442.firebaseapp.com/__/auth/handler`
+5. 登録後、**アプリケーション (クライアント) ID** をコピー
+6. **証明書とシークレット** → **新しいクライアント シークレット** を作成してコピー
 
 ### 3. Firebase Console に登録
 
 1. Microsoft プロバイダ設定画面に戻る
 2. **アプリケーション ID** と **アプリケーション シークレット** を貼り付け
 3. **保存**
+
+### Azure テナントがブロックされた場合（AADSTS5000225）
+
+エラー例:
+`This tenant has been blocked due to inactivity`
+
+これは Puffy の不具合ではなく、**Azure のディレクトリ（テナント）が非アクティブで停止** されています。無料枠の Azure / Entra を長期間使っていないと起きます。
+
+**対処:**
+
+1. [Azure Portal](https://portal.azure.com/) 右上の **ディレクトリ + サブスクリプション** を開く
+2. 停止中の `Default Directory` ではなく、**別の有効なテナント** に切り替える  
+   なければ **「+ 新しいテナントの作成」** で新規作成
+3. 新しいテナントで **アプリの登録** をやり直す（手順 2）
+4. 新しい **アプリケーション ID / シークレット** を Firebase Console の Microsoft 設定に貼り直す
+
+個人の Microsoft アカウント（`@outlook.com` 等）だけでログインさせたい場合も、上記の「個人用 Microsoft アカウント」を含むアカウント種類でアプリ登録が必要です。
 
 ---
 
@@ -70,3 +89,4 @@ Firebase 画面に表示される手順に従うか、[Azure Portal](https://por
 | `auth/unauthorized-domain` | Firebase の承認済みドメインに Vercel URL を追加 |
 | GitHub で redirect_uri エラー | コールバック URL が完全一致しているか確認 |
 | Microsoft でログイン失敗 | Azure のリダイレクト URI と Firebase の設定を再確認 |
+| `AADSTS5000225` テナント停止 | Azure で新しいテナントを作成し、アプリ登録をやり直す（上記参照） |
