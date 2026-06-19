@@ -1521,10 +1521,6 @@ select {
   gap: 12px;
 }
 
-.linked-providers-hint {
-  margin: 0;
-}
-
 .linked-providers-list {
   list-style: none;
   margin: 0;
