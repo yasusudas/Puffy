@@ -7,7 +7,7 @@
       "emailPassword": true,
       "googleSignIn": {
         "oAuthBrandDisplayName": "Puffy",
-        "authorizedDomains": ["localhost"]
+        "authorizedDomains": []
       }
     }
   }

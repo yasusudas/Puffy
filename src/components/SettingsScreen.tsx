@@ -206,7 +206,7 @@ export function SettingsScreen({ notificationsEnabled, onNotify, userEmail }: Se
         <p>
           {authEnabled
             ? "データはクラウドとこの端末の両方に保存されます。JSONエクスポートはバックアップ用です。"
-            : "クラウド同期がオフです。`.env.local` を設定し、`npm run dev` を再起動するとログイン画面が表示されます。"}
+            : "クラウド同期がオフです。Vercel の環境変数に Firebase 設定を追加し、再デプロイしてください。詳細は docs/VERCEL_FIREBASE.md を参照。"}
         </p>
       </section>
 

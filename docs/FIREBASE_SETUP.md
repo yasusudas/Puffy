@@ -3,6 +3,8 @@
 プロジェクト番号: `481678288485`  
 プロジェクト ID: `puffy-dc442`
 
+> **本番 (Vercel)**: `docs/VERCEL_FIREBASE.md` を参照してください。
+
 ## 1. Firebase Console で有効化
 
 ### Authentication
@@ -15,8 +17,8 @@
 
 Authentication → 設定 → 承認済みドメインに以下を追加:
 
-- `localhost`（開発用）
-- 本番デプロイ先のドメイン（例: `your-app.vercel.app`）
+- Vercel 本番ドメイン（例: `your-app.vercel.app`）
+- カスタムドメイン（使用する場合）
 
 > ドメインにはプロトコルやポートを含めない（`localhost` であり `http://localhost:5173` ではない）
 
@@ -48,7 +50,15 @@ npx -y firebase-tools@latest apps:sdkconfig web <APP_ID>
 2. ニックネーム: `Puffy Web`
 3. 表示される `firebaseConfig` の値を `.env.local` に記入
 
-## 3. 環境変数 (`.env.local`)
+## 3. 環境変数
+
+### Vercel（本番）
+
+`docs/VERCEL_FIREBASE.md` の手順に従い、Vercel Dashboard で設定します。
+
+### ローカル開発（任意）
+
+`.env.local` に以下を記入:
 
 ```env
 VITE_FIREBASE_API_KEY=...
