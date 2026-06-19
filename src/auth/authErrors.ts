@@ -123,8 +123,26 @@ export function formatFirebaseAuthError(
     if (haystack.includes("aadsts50011") || haystack.includes("redirect_uri")) {
       return "Azure のリダイレクト URI が一致していません。Web プラットフォームに https://puffy-dc442.firebaseapp.com/__/auth/handler を追加してください。";
     }
-    if (haystack.includes("invalid_client") || haystack.includes("client_secret")) {
-      return "Firebase の Microsoft シークレットが正しくありません。Azure で新しいクライアントシークレットを作成し、Firebase Console に貼り直してください（前後の空白なし）。";
+    if (haystack.includes("aadsts7000222") || haystack.includes("client secret keys are expired")) {
+      return "Azure のクライアントシークレットの有効期限が切れています。Azure で新しいシークレットを作成し、Firebase Console の Microsoft 設定に貼り直してください。";
+    }
+    if (haystack.includes("aadsts700016") || haystack.includes("was not found in the directory")) {
+      return "Firebase のアプリケーション ID が Azure の登録と一致していません。Azure の「アプリケーション (クライアント) ID」と Firebase の「アプリケーション ID」が同じか確認し、シークレットも同じアプリ登録のものを貼り直してください。";
+    }
+    if (haystack.includes("invalid_client") || haystack.includes("client_secret") || haystack.includes("aadsts7000215")) {
+      const fullText = `${error.message ?? ""} ${customDataText}`;
+      const appIdMatch = fullText.match(/app ['"]([0-9a-f-]{36})['"]/i);
+      const appHint = appIdMatch
+        ? ` Microsoft はアプリ ID「${appIdMatch[1]}」用のシークレットを期待しています。Firebase のアプリケーション ID がこれと一致するか確認してください。`
+        : "";
+      return `Firebase の Microsoft 設定（アプリケーション ID とシークレットのペア）が Azure と一致していません。${appHint}
+
+よくある原因:
+・シークレットの「値」をコピーしているか（「シークレット ID」の GUID ではない）
+・アプリケーション ID とシークレットが同じ Azure アプリ登録のものか
+・シークレットの有効期限切れ
+
+Azure でシークレットを新規作成 → Firebase Console で Microsoft を一度オフに保存 → 再度オンにして ID とシークレットを両方貼り直し → 保存。`;
     }
 
     const detail = (error.message ?? "").trim();
