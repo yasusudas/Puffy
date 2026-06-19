@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Folder, FolderColorId } from "../types";
-import { FOLDER_COLORS, colorHex, pickUnusedColor } from "../lib/colors";
+import { FOLDER_COLOR_ROW1, FOLDER_COLOR_ROW2, colorHex, folderColorById, pickUnusedColor } from "../lib/colors";
 import { FolderRepository } from "../db/repositories";
 import { ModalSheet } from "./ModalSheet";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -111,19 +111,42 @@ export function FolderManageModal({ folders, onClose, onError }: FolderManageMod
               色
             </span>
             <div className="color-swatches folder-color-swatches" role="group" aria-labelledby="color-label">
-              {FOLDER_COLORS.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className="color-swatch"
-                  style={{ background: c.hex }}
-                  aria-pressed={editor.colorId === c.id}
-                  aria-label={c.label}
-                  onClick={() => setEditor({ ...editor, colorId: c.id })}
-                >
-                  {editor.colorId === c.id && <CheckIcon size={14} />}
-                </button>
-              ))}
+              <div className="color-swatches-row">
+                {FOLDER_COLOR_ROW1.map((id) => {
+                  const c = folderColorById(id);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="color-swatch"
+                      style={{ background: c.hex }}
+                      aria-pressed={editor.colorId === c.id}
+                      aria-label={c.label}
+                      onClick={() => setEditor({ ...editor, colorId: c.id })}
+                    >
+                      {editor.colorId === c.id && <CheckIcon size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="color-swatches-row">
+                {FOLDER_COLOR_ROW2.map((id) => {
+                  const c = folderColorById(id);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="color-swatch"
+                      style={{ background: c.hex }}
+                      aria-pressed={editor.colorId === c.id}
+                      aria-label={c.label}
+                      onClick={() => setEditor({ ...editor, colorId: c.id })}
+                    >
+                      {editor.colorId === c.id && <CheckIcon size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
           <button type="button" className="button-primary" onClick={save}>

@@ -21,7 +21,7 @@ export interface Task {
 
 export type FolderColorId =
   | "sky" | "blue" | "indigo" | "violet"
-  | "fuchsia" | "pink" | "orange" | "amber"
+  | "fuchsia" | "pink" | "black" | "orange" | "amber"
   | "lime" | "green" | "teal" | "cyan";
 
 export interface Folder {

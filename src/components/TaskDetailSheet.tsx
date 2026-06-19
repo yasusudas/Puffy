@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { Folder, Task } from "../types";
 import { ModalSheet } from "./ModalSheet";
 import { TaskForm, type TaskFormValues } from "./TaskForm";
@@ -14,11 +15,28 @@ interface TaskDetailSheetProps {
 
 export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, onClose }: TaskDetailSheetProps) {
   const isOverdue = new Date(task.dueAt).getTime() <= Date.now();
+  const completePressRef = useRef(false);
 
   return (
     <ModalSheet title="タスクの詳細" onClose={onClose}>
       <div style={{ padding: "0 16px" }}>
-        <button type="button" className="button-complete" style={{ width: "100%" }} onClick={onComplete}>
+        <button
+          type="button"
+          className="button-complete"
+          style={{ width: "100%" }}
+          onPointerDown={() => {
+            completePressRef.current = true;
+          }}
+          onPointerUp={() => {
+            if (!completePressRef.current) return;
+            completePressRef.current = false;
+            onComplete();
+          }}
+          onPointerCancel={() => {
+            completePressRef.current = false;
+          }}
+          onClick={(e) => e.preventDefault()}
+        >
           <CheckIcon size={20} />
           完了して風船を割る
         </button>

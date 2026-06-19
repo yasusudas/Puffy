@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Folder, FolderColorId, InflationWindowHours } from "../types";
 import { INFLATION_OPTIONS } from "../types";
-import { FOLDER_COLORS } from "../lib/colors";
+import { TASK_COLOR_ROW1, TASK_COLOR_ROW2, folderColorById } from "../lib/colors";
 import { isoToLocalInput, localInputToIso } from "../lib/time";
 
 export interface TaskFormValues {
@@ -39,8 +39,8 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
     e.preventDefault();
     const trimmed = title.trim();
     const next: { title?: string; due?: string } = {};
-    if (trimmed.length < 1 || trimmed.length > 80) {
-      next.title = "タスク名は1〜80文字で入力してください。";
+    if (trimmed.length < 1) {
+      next.title = "タスク名を入力してください。";
     }
     if (!dueLocal || Number.isNaN(new Date(dueLocal).getTime())) {
       next.due = "期限日時を入力してください。";
@@ -69,13 +69,11 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
           id="task-title"
           type="text"
           value={title}
-          maxLength={80}
           onChange={(e) => setTitle(e.target.value)}
           required
           aria-invalid={!!errors.title}
         />
         {errors.title && <span className="field-error" role="alert">{errors.title}</span>}
-        <span className="field-counter">{title.trim().length} / 80</span>
       </div>
 
       <div className="field-group">
@@ -119,30 +117,59 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
           aria-labelledby="color-label"
           aria-disabled={colorDisabled}
         >
-          <button
-            type="button"
-            className={`color-swatch color-swatch-default${colorId === null ? " is-selected" : ""}`}
-            aria-pressed={colorId === null}
-            aria-label="フォルダの色に従う"
-            title="フォルダの色に従う"
-            disabled={colorDisabled}
-            onClick={() => setColorId(null)}
-          >
-            自動
-          </button>
-          {FOLDER_COLORS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
-              style={{ backgroundColor: c.hex }}
-              aria-pressed={colorId === c.id}
-              aria-label={c.label}
-              title={c.label}
-              disabled={colorDisabled}
-              onClick={() => setColorId(c.id)}
-            />
-          ))}
+          <div className="color-swatches-row">
+            {TASK_COLOR_ROW1.map((id) =>
+              id === "auto" ? (
+                <button
+                  key="auto"
+                  type="button"
+                  className={`color-swatch color-swatch-default${colorId === null ? " is-selected" : ""}`}
+                  aria-pressed={colorId === null}
+                  aria-label="フォルダの色に従う"
+                  title="フォルダの色に従う"
+                  disabled={colorDisabled}
+                  onClick={() => setColorId(null)}
+                >
+                  自動
+                </button>
+              ) : (
+                (() => {
+                  const c = folderColorById(id);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
+                      style={{ backgroundColor: c.hex }}
+                      aria-pressed={colorId === c.id}
+                      aria-label={c.label}
+                      title={c.label}
+                      disabled={colorDisabled}
+                      onClick={() => setColorId(c.id)}
+                    />
+                  );
+                })()
+              ),
+            )}
+          </div>
+          <div className="color-swatches-row">
+            {TASK_COLOR_ROW2.map((id) => {
+              const c = folderColorById(id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`color-swatch${colorId === c.id ? " is-selected" : ""}`}
+                  style={{ backgroundColor: c.hex }}
+                  aria-pressed={colorId === c.id}
+                  aria-label={c.label}
+                  title={c.label}
+                  disabled={colorDisabled}
+                  onClick={() => setColorId(c.id)}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -169,11 +196,9 @@ export function TaskForm({ folders, initial, defaultFolderId, submitLabel, requi
         <textarea
           id="task-memo"
           value={memo}
-          maxLength={2000}
           onChange={(e) => setMemo(e.target.value)}
           rows={4}
         />
-        <span className="field-counter">{memo.length} / 2,000</span>
       </div>
 
       <button type="submit" className="button-primary">

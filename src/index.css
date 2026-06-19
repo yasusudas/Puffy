@@ -789,6 +789,7 @@ select {
   align-items: center;
   gap: 8px;
   padding: 14px 16px 6px;
+  flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -797,14 +798,18 @@ select {
   margin-right: auto;
 }
 
+.modal-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .modal-body {
   flex: 1;
   min-height: 0;
   padding: 10px 16px 16px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-x: none;
-  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -895,8 +900,14 @@ select {
 }
 
 .task-color-swatches {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.color-swatches-row {
   display: grid;
-  grid-template-columns: repeat(13, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -1235,8 +1246,14 @@ select {
 }
 
 .folder-color-swatches {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.folder-color-swatches .color-swatches-row {
   display: grid;
-  grid-template-columns: repeat(6, 28px);
+  grid-template-columns: repeat(7, 28px);
   gap: 6px;
   justify-content: start;
 }

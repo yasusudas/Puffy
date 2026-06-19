@@ -307,7 +307,10 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       // ドラッグ方向に関わらず、離した位置から鉛直上方向へ浮かせる
       engine.endDrag(id);
     } else if (!cancelled) {
-      // 移動量8px未満はタップとして詳細を開く
+      // 移動量8px未満はタップとして詳細を開く。
+      // preventDefault でタッチ後の合成 click (ゴーストクリック) を抑止し、
+      // 詳細シート上の「完了」ボタンが同座標で誤発火するのを防ぐ。
+      e.preventDefault();
       onTapTask(id);
     }
   }, [engine, onTapTask]);

@@ -13,14 +13,22 @@ export function ModalSheet({ title, onClose, children, headerExtra }: ModalSheet
   const sheetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    // 開いた時に最初のフォーカス可能要素へ移動
-    const focusable = sheetRef.current?.querySelector<HTMLElement>(
-      "input, textarea, select, button:not(.modal-close)",
-    );
+    // 開いた時に入力欄へ移動 (完了ボタンより先にフォーカスし、誤操作を避ける)
+    const focusable =
+      sheetRef.current?.querySelector<HTMLElement>("#task-title")
+      ?? sheetRef.current?.querySelector<HTMLElement>("input, textarea, select");
     focusable?.focus();
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
@@ -41,7 +49,7 @@ export function ModalSheet({ title, onClose, children, headerExtra }: ModalSheet
             <CloseIcon />
           </button>
         </div>
-        {children}
+        <div className="modal-scroll">{children}</div>
       </div>
     </div>
   );

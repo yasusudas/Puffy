@@ -7,6 +7,7 @@ export const FOLDER_COLORS: { id: FolderColorId; label: string; hex: string }[] 
   { id: "violet", label: "バイオレット", hex: "#7C3AED" },
   { id: "fuchsia", label: "フクシア", hex: "#C026D3" },
   { id: "pink", label: "ピンク", hex: "#DB2777" },
+  { id: "black", label: "ブラック", hex: "#171717" },
   { id: "orange", label: "オレンジ", hex: "#EA580C" },
   { id: "amber", label: "アンバー", hex: "#D97706" },
   { id: "lime", label: "ライム", hex: "#65A30D" },
@@ -14,6 +15,28 @@ export const FOLDER_COLORS: { id: FolderColorId; label: string; hex: string }[] 
   { id: "teal", label: "ティール", hex: "#0D9488" },
   { id: "cyan", label: "シアン", hex: "#0891B2" },
 ];
+
+/** タスク色ピッカー 1行目 (7列): 自動 + 6色。2行目先頭の黒は自動の真下 */
+export const TASK_COLOR_ROW1: readonly (FolderColorId | "auto")[] = [
+  "auto", "sky", "blue", "indigo", "violet", "fuchsia", "pink",
+];
+export const TASK_COLOR_ROW2: readonly FolderColorId[] = [
+  "black", "orange", "amber", "lime", "green", "teal", "cyan",
+];
+
+/** フォルダ色ピッカー 2行 (7列 + 6列) */
+export const FOLDER_COLOR_ROW1: readonly FolderColorId[] = [
+  "sky", "blue", "indigo", "violet", "fuchsia", "pink",
+];
+export const FOLDER_COLOR_ROW2: readonly FolderColorId[] = [
+  "black", "orange", "amber", "lime", "green", "teal", "cyan",
+];
+
+const COLOR_BY_ID = new Map(FOLDER_COLORS.map((c) => [c.id, c]));
+
+export function folderColorById(id: FolderColorId) {
+  return COLOR_BY_ID.get(id)!;
+}
 
 export const UNFILED_COLOR = "#64748B";
 export const WARNING_COLOR = "#DC2626";
