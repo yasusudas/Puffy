@@ -74,6 +74,35 @@ https://puffy-dc442.firebaseapp.com/__/auth/handler
 
 個人の Microsoft アカウント（`@outlook.com` 等）だけでログインさせたい場合も、上記の「個人用 Microsoft アカウント」を含むアカウント種類でアプリ登録が必要です。
 
+### 設定はすべて正しいのに失敗する場合
+
+Azure の概要に **黄色の「未検証のパブリッシャー」** 警告が出ている場合、2020年11月以降に作ったマルチテナントアプリは **個人 Microsoft アカウントの同意がブロック** されることがあります。
+
+**確認手順:**
+
+1. **マニフェスト**（左メニュー）を開き、次を確認:
+   ```json
+   "signInAudience": "AzureADandPersonalMicrosoftAccount",
+   "api": { "requestedAccessTokenVersion": 2 }
+   ```
+   `requestedAccessTokenVersion` が無い場合は追加して保存。
+
+2. **エンタープライズアプリケーション** → `Puffy` を検索 → **アクセス許可** → **{テナント名} に管理者の同意を与える** を実行（職場アカウント向け）。
+
+3. **Firebase のシークレット** を再確認:
+   - Azure の **シークレットの値**（`Secret ID` ではない）をコピー
+   - 貼り付け時に前後の空白・改行が入っていないか確認
+   - アプリ ID は `01138959-7474-4cdc-9f91-adf14070b1fe` など **今の登録** と一致しているか
+
+4. **シークレットブラウザ / プライベートウィンドウ** で再試行（古いセッションの影響を除外）
+
+5. ログイン失敗時の **「（詳細: …）」** に `AADSTS#####` が出たら、その番号で [Microsoft エラー一覧](https://learn.microsoft.com/ja-jp/entra/identity-platform/reference-error-codes) を検索
+
+**未検証パブリッシャーの恒久対処:**
+
+- **パブリッシャーの検証**（MPN ID が必要。個人の Outlook アカウントだけでは難しい場合あり）
+- または **パブリッシャーのドメイン** を Azure → ブランド化とプロパティ で設定（所有ドメインの DNS 検証が必要）
+
 ---
 
 ## アカウント連携（複数ログイン方法を1アカウントに）
