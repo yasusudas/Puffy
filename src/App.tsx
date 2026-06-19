@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { registerSW } from "virtual:pwa-register";
+import { applyAppUpdate, initPwaUpdate } from "./lib/pwaUpdate";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuth } from "./auth/AuthContext";
 import { useSync } from "./sync/SyncContext";
@@ -147,17 +147,15 @@ export default function App() {
 
   // Service Worker登録と非破壊的な更新案内 (仕様 15)
   useEffect(() => {
-    const updateSW = registerSW({
-      onNeedRefresh() {
-        showToast(
-          {
-            message: `新しいバージョンがあります (${APP_VERSION})`,
-            actionLabel: "更新する",
-            onAction: () => void updateSW(true),
-          },
-          15000,
-        );
-      },
+    initPwaUpdate(() => {
+      showToast(
+        {
+          message: `新しいバージョンがあります (${APP_VERSION})`,
+          actionLabel: "更新する",
+          onAction: () => void applyAppUpdate(),
+        },
+        15000,
+      );
     });
   }, [showToast]);
 

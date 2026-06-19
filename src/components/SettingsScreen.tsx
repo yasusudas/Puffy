@@ -14,6 +14,7 @@ import {
 } from "../lib/notifications";
 import { SettingsRepository, TaskRepository } from "../db/repositories";
 import { useAuth } from "../auth/AuthContext";
+import { checkForAppUpdate } from "../lib/pwaUpdate";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LinkedProvidersSettings } from "./LinkedProvidersSettings";
 import { MAX_ACCOUNT_NAME_LENGTH } from "./AccountNamePrompt";
@@ -43,6 +44,7 @@ export function SettingsScreen({ notificationsEnabled, onNotify, userEmail, acco
   const { enabled: authEnabled, logout } = useAuth();
   const [permission, setPermission] = useState<PermissionState>(notificationPermission());
   const [confirm, setConfirm] = useState<PendingConfirm | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(accountName ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +108,22 @@ export function SettingsScreen({ notificationsEnabled, onNotify, userEmail, acco
       onNotify("操作に失敗しました。容量不足の場合はエクスポートと不要データの削除をお試しください。", true);
     }
     setConfirm(null);
+  };
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const result = await checkForAppUpdate();
+      if (result === "current") {
+        onNotify("最新バージョンです。");
+      } else if (result === "offline") {
+        onNotify("オフラインのため確認できません。", true);
+      } else if (result === "unsupported") {
+        onNotify("この環境ではアップデート確認に対応していません。", true);
+      }
+    } finally {
+      setCheckingUpdate(false);
+    }
   };
 
   const saveAccountName = async () => {
@@ -258,9 +276,19 @@ export function SettingsScreen({ notificationsEnabled, onNotify, userEmail, acco
 
       <section className="settings-section" aria-labelledby="settings-about">
         <h3 id="settings-about">アプリ情報</h3>
-        <div className="settings-row">
-          <span>アプリバージョン</span>
-          <span>{APP_VERSION}</span>
+        <div className="settings-about-version">
+          <div className="settings-row">
+            <span>アプリバージョン</span>
+            <span>{APP_VERSION}</span>
+          </div>
+          <button
+            type="button"
+            className="button-check-update"
+            disabled={checkingUpdate}
+            onClick={() => void handleCheckUpdate()}
+          >
+            {checkingUpdate ? "確認中…" : "アップデートを確認"}
+          </button>
         </div>
         <div className="settings-row">
           <span>更新日時</span>

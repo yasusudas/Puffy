@@ -30,10 +30,6 @@ export function LinkedProvidersSettings({ onNotify }: LinkedProvidersSettingsPro
 
   return (
     <div className="linked-providers">
-      <p className="linked-providers-hint">
-        設定から連携する場合、メールアドレスが違っても同じアカウントに紐づけられます。Google・GitHub・Microsoft
-        のいずれでログインしても同じタスクデータにアクセスします。
-      </p>
       <ul className="linked-providers-list">
         {OAUTH_PROVIDER_IDS.map((id) => {
           const linked = linkedProviderIds.includes(id);
