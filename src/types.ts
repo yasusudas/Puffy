@@ -47,6 +47,8 @@ export interface Settings {
   schemaVersion: 1;
   firstTaskHintDismissed: boolean;
   notificationsEnabled: boolean;
+  /** ユーザーが任意に設定する表示名。メールアドレスとは別 */
+  accountName: string | null;
   createdAt: string;
   updatedAt: string;
 }

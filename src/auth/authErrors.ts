@@ -1,4 +1,6 @@
-export function authErrorMessage(code: string): string {
+export type AuthErrorContext = "signin" | "link" | "password";
+
+export function authErrorMessage(code: string, context: AuthErrorContext = "signin"): string {
   switch (code) {
     case "auth/invalid-email":
       return "メールアドレスの形式が正しくありません。";
@@ -6,7 +8,14 @@ export function authErrorMessage(code: string): string {
       return "このアカウントは無効化されています。";
     case "auth/user-not-found":
     case "auth/wrong-password":
+      return "メールアドレスまたはパスワードが正しくありません。";
     case "auth/invalid-credential":
+      if (context === "link") {
+        return "連携に失敗しました。Microsoft の場合は Azure で「個人用 Microsoft アカウント」が有効か確認してください。";
+      }
+      if (context === "signin") {
+        return "ログインに失敗しました。別の方法で登録済みの場合は、その方法でログインしてから設定で連携してください。";
+      }
       return "メールアドレスまたはパスワードが正しくありません。";
     case "auth/email-already-in-use":
       return "このメールアドレスは既に登録されています。";
@@ -25,10 +34,15 @@ export function authErrorMessage(code: string): string {
     case "auth/provider-already-linked":
       return "このログイン方法は既に連携済みです。";
     case "auth/credential-already-in-use":
+      if (context === "link") {
+        return "このログイン方法は別の Puffy アカウントで既に使われています。その方法でログインし、設定から他のログイン方法を連携してください。（メールアドレスが違っても、以前その方法だけでログインしたアカウントが残っている場合があります）";
+      }
       return "このログイン方法は別のアカウントで使われています。";
     case "auth/requires-recent-login":
       return "セキュリティのため、一度ログアウトしてから再度ログインしてから連携してください。";
     default:
-      return "認証に失敗しました。時間をおいて再度お試しください。";
+      return context === "link"
+        ? "連携に失敗しました。時間をおいて再度お試しください。"
+        : "認証に失敗しました。時間をおいて再度お試しください。";
   }
 }

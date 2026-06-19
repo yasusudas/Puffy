@@ -121,6 +121,7 @@ export async function importBackup(data: ValidatedBackup): Promise<void> {
       ...current,
       firstTaskHintDismissed: data.settings.firstTaskHintDismissed ?? current.firstTaskHintDismissed,
       notificationsEnabled: data.settings.notificationsEnabled ?? current.notificationsEnabled,
+      accountName: data.settings.accountName ?? current.accountName,
       updatedAt: now,
     });
   });

@@ -19,6 +19,7 @@ import { FolderFilterBar } from "./components/FolderFilterBar";
 import { FolderManageModal } from "./components/FolderManageModal";
 import { SearchBar, SearchInput } from "./components/SearchBar";
 import { SettingsScreen } from "./components/SettingsScreen";
+import { AccountNamePrompt } from "./components/AccountNamePrompt";
 import { AuthScreen } from "./components/AuthScreen";
 import { Sidebar } from "./components/Sidebar";
 import { TaskCreateModal } from "./components/TaskCreateModal";
@@ -65,6 +66,7 @@ export default function App() {
   const [permanentDeleteId, setPermanentDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [now, setNow] = useState(() => new Date());
+  const [accountNamePromptDismissed, setAccountNamePromptDismissed] = useState(false);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const toastTimer = useRef<number | undefined>(undefined);
@@ -324,6 +326,14 @@ export default function App() {
     settings != null &&
     !settings.firstTaskHintDismissed;
 
+  const showAccountNamePrompt =
+    authEnabled &&
+    user &&
+    syncReady &&
+    settings != null &&
+    !settings.accountName?.trim() &&
+    !accountNamePromptDismissed;
+
   const mainContent = (
     <main className="app-main">
       {view === "settings" ? (
@@ -331,6 +341,7 @@ export default function App() {
           notificationsEnabled={settings?.notificationsEnabled ?? false}
           onNotify={(message, error) => showToast({ message, error })}
           userEmail={user?.email ?? null}
+          accountName={settings?.accountName ?? null}
         />
       ) : (
         <>
@@ -523,6 +534,16 @@ export default function App() {
           danger
           onConfirm={() => void deletePermanently()}
           onCancel={() => setPermanentDeleteId(null)}
+        />
+      )}
+
+      {showAccountNamePrompt && (
+        <AccountNamePrompt
+          onComplete={(message) => {
+            setAccountNamePromptDismissed(true);
+            showToast({ message });
+          }}
+          onSkip={() => setAccountNamePromptDismissed(true)}
         />
       )}
 

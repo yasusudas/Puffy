@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signInWithEmailAndPassword(auth, email.trim(), password);
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
-      throw new Error(authErrorMessage(code));
+      throw new Error(authErrorMessage(code, "password"));
     }
   }, []);
 
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
-      throw new Error(authErrorMessage(code));
+      throw new Error(authErrorMessage(code, "password"));
     }
   }, []);
 

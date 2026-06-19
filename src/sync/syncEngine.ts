@@ -89,6 +89,7 @@ async function replaceLocalData(snapshot: CloudSnapshot): Promise<void> {
       firstTaskHintDismissed:
         snapshot.settings?.firstTaskHintDismissed ?? current.firstTaskHintDismissed,
       notificationsEnabled: snapshot.settings?.notificationsEnabled ?? current.notificationsEnabled,
+      accountName: snapshot.settings?.accountName ?? current.accountName,
       updatedAt: nowIso(),
     });
   });
@@ -108,6 +109,7 @@ async function uploadLocalToCloud(uid: string): Promise<void> {
     setDoc(doc(fs, userSettingsPath(uid)), {
       firstTaskHintDismissed: settings.firstTaskHintDismissed,
       notificationsEnabled: settings.notificationsEnabled,
+      accountName: settings.accountName,
       updatedAt: settings.updatedAt,
     }),
   ]);
@@ -145,6 +147,10 @@ export async function applyMigration(
       (localSettings.updatedAt >= (cloud.settings?.updatedAt ?? ""))
         ? localSettings.notificationsEnabled
         : (cloud.settings?.notificationsEnabled ?? localSettings.notificationsEnabled),
+    accountName:
+      (localSettings.updatedAt >= (cloud.settings?.updatedAt ?? ""))
+        ? localSettings.accountName
+        : (cloud.settings?.accountName ?? localSettings.accountName),
     updatedAt: nowIso(),
   };
 
@@ -213,6 +219,7 @@ async function applyRemoteSettings(settings: Partial<Settings>): Promise<void> {
       await db.settings.update("app", {
         firstTaskHintDismissed: settings.firstTaskHintDismissed ?? local.firstTaskHintDismissed,
         notificationsEnabled: settings.notificationsEnabled ?? local.notificationsEnabled,
+        accountName: settings.accountName ?? local.accountName,
         updatedAt: settings.updatedAt ?? nowIso(),
       });
     }
@@ -301,6 +308,7 @@ export async function pushSettings(settings: Settings): Promise<void> {
   await setDoc(doc(assertFirestore(), userSettingsPath(currentUid)), {
     firstTaskHintDismissed: settings.firstTaskHintDismissed,
     notificationsEnabled: settings.notificationsEnabled,
+    accountName: settings.accountName,
     updatedAt: settings.updatedAt,
   });
 }

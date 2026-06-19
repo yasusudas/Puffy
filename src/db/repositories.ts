@@ -175,13 +175,16 @@ export const FolderRepository = {
 export const SettingsRepository = {
   async get(): Promise<Settings> {
     const existing = await db.settings.get("app");
-    if (existing) return existing;
+    if (existing) {
+      return { ...existing, accountName: existing.accountName ?? null };
+    }
     const now = nowIso();
     const settings: Settings = {
       id: "app",
       schemaVersion: SCHEMA_VERSION,
       firstTaskHintDismissed: false,
       notificationsEnabled: false,
+      accountName: null,
       createdAt: now,
       updatedAt: now,
     };

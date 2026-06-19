@@ -66,7 +66,7 @@ export async function linkOAuthProvider(user: User, providerId: OAuthProviderId)
     if (code === "auth/provider-already-linked") {
       throw new Error(`${providerLabel(providerId)}は既に連携済みです。`);
     }
-    throw new Error(authErrorMessage(code));
+    throw new Error(authErrorMessage(code, "link"));
   }
 }
 
@@ -95,7 +95,7 @@ export async function completeAccountLink(
     await user.reload();
   } catch (err) {
     const code = (err as { code?: string }).code;
-    if (code) throw new Error(authErrorMessage(code));
+    if (code) throw new Error(authErrorMessage(code, existingMethod === "password" ? "password" : "link"));
     if (err instanceof Error) throw err;
     throw new Error(authErrorMessage("unknown"));
   }

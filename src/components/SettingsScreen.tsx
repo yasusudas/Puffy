@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { APP_UPDATED_AT, APP_VERSION, SCHEMA_VERSION } from "../types";
 import {
   deleteAllData,
@@ -16,11 +16,13 @@ import { SettingsRepository, TaskRepository } from "../db/repositories";
 import { useAuth } from "../auth/AuthContext";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LinkedProvidersSettings } from "./LinkedProvidersSettings";
+import { MAX_ACCOUNT_NAME_LENGTH } from "./AccountNamePrompt";
 
 interface SettingsScreenProps {
   notificationsEnabled: boolean;
   onNotify: (message: string, error?: boolean) => void;
   userEmail?: string | null;
+  accountName?: string | null;
 }
 
 const PERMISSION_LABELS: Record<PermissionState, string> = {
@@ -37,11 +39,17 @@ type PendingConfirm =
   | { kind: "emptyTrash" }
   | { kind: "deleteAll" };
 
-export function SettingsScreen({ notificationsEnabled, onNotify, userEmail }: SettingsScreenProps) {
+export function SettingsScreen({ notificationsEnabled, onNotify, userEmail, accountName }: SettingsScreenProps) {
   const { enabled: authEnabled, logout } = useAuth();
   const [permission, setPermission] = useState<PermissionState>(notificationPermission());
   const [confirm, setConfirm] = useState<PendingConfirm | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(accountName ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!editingName) setNameDraft(accountName ?? "");
+  }, [accountName, editingName]);
 
   const enableNotifications = async () => {
     const result = await requestNotificationPermission();
@@ -100,11 +108,74 @@ export function SettingsScreen({ notificationsEnabled, onNotify, userEmail }: Se
     setConfirm(null);
   };
 
+  const saveAccountName = async () => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) {
+      onNotify("アカウント名を入力してください。", true);
+      return;
+    }
+    if (trimmed.length > MAX_ACCOUNT_NAME_LENGTH) {
+      onNotify(`アカウント名は${MAX_ACCOUNT_NAME_LENGTH}文字以内にしてください。`, true);
+      return;
+    }
+    try {
+      await SettingsRepository.update({ accountName: trimmed });
+      setEditingName(false);
+      onNotify("アカウント名を保存しました。");
+    } catch {
+      onNotify("アカウント名の保存に失敗しました。", true);
+    }
+  };
+
   return (
     <div className="settings-screen">
       {authEnabled && userEmail && (
         <section className="settings-section" aria-labelledby="settings-account">
           <h3 id="settings-account">アカウント</h3>
+          <div className="settings-row">
+            <span>アカウント名</span>
+            {editingName ? (
+              <input
+                className="account-name-input"
+                type="text"
+                value={nameDraft}
+                maxLength={MAX_ACCOUNT_NAME_LENGTH}
+                onChange={(e) => setNameDraft(e.target.value)}
+              />
+            ) : (
+              <span className="account-email">{accountName?.trim() || "未設定"}</span>
+            )}
+          </div>
+          <div className="settings-account-actions">
+            {editingName ? (
+              <>
+                <button type="button" className="button-secondary" onClick={() => void saveAccountName()}>
+                  保存
+                </button>
+                <button
+                  type="button"
+                  className="button-secondary"
+                  onClick={() => {
+                    setNameDraft(accountName ?? "");
+                    setEditingName(false);
+                  }}
+                >
+                  キャンセル
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={() => {
+                  setNameDraft(accountName ?? "");
+                  setEditingName(true);
+                }}
+              >
+                アカウント名を変更
+              </button>
+            )}
+          </div>
           <div className="settings-row">
             <span>ログイン中</span>
             <span className="account-email">{userEmail}</span>
