@@ -33,6 +33,19 @@ test("タスクを作成し、完了して完了一覧へ移動できる", async
   await expect(page.locator(".history-card", { hasText: "E2Eテストのタスク" })).toBeVisible();
 });
 
+test("モバイル幅で風船をタップしてもタスク名入力欄に自動フォーカスしない", async ({ page }) => {
+  await page.goto("/");
+  await createTask(page, "モバイル詳細フォーカス確認", 26);
+
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.locator(".balloon", { hasText: "モバイル詳細フォーカス確認" }).click({ force: true });
+
+  const dialog = page.getByRole("dialog", { name: "タスクの詳細" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toBeFocused();
+  await expect(page.locator("#task-title")).not.toBeFocused();
+});
+
 test("検索で現在のタブ内を部分一致で絞り込める", async ({ page }) => {
   await page.goto("/");
   await createTask(page, "歯医者の予約", 48);

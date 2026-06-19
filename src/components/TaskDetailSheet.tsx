@@ -18,7 +18,7 @@ export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, o
   const completePressRef = useRef(false);
 
   return (
-    <ModalSheet title="タスクの詳細" onClose={onClose}>
+    <ModalSheet title="タスクの詳細" onClose={onClose} initialFocus="dialog">
       <div style={{ padding: "0 16px" }}>
         <button
           type="button"
@@ -56,9 +56,11 @@ export function TaskDetailSheet({ task, folders, onComplete, onSave, onDelete, o
         colorDisabled={isOverdue}
         onSubmit={onSave}
       />
-      <button type="button" className="button-text-danger" onClick={onDelete} style={{ marginBottom: 12 }}>
-        このタスクを削除
-      </button>
+      <div className="task-detail-delete">
+        <button type="button" className="button-text-danger" onClick={onDelete}>
+          このタスクを削除
+        </button>
+      </div>
     </ModalSheet>
   );
 }

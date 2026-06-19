@@ -356,7 +356,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
                   width: d,
                   height: d,
                   fontSize,
-                  background: `radial-gradient(circle at 32% 28%, ${lighten(b.color, 0.25)}, ${b.color} 62%, ${darken(b.color, 0.18)})`,
+                  background: `radial-gradient(circle at 30% 24%, ${lighten(b.color, 0.46)} 0%, ${lighten(b.color, 0.14)} 30%, ${b.color} 63%, ${darken(b.color, 0.22)} 100%)`,
                   color: b.textColor,
                   transform: "translate(var(--tx), var(--ty))",
                   "--balloon-color": b.color,
