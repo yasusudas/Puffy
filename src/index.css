@@ -1299,6 +1299,39 @@ select {
   font-size: 14px;
 }
 
+.settings-about-version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.settings-about-version .settings-row {
+  width: 100%;
+}
+
+.button-check-update {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-align: center;
+}
+
+.button-check-update:hover:not(:disabled) {
+  color: var(--text-sub);
+}
+
+.button-check-update:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .permission-badge {
   font-size: 12px;
   font-weight: 700;
