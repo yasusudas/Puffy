@@ -133,8 +133,8 @@ select {
   text-align: left;
 }
 
-.sidebar-logo:hover {
-  background: var(--bg);
+.sidebar-logo:active span {
+  color: var(--primary);
 }
 
 .sidebar-nav {
@@ -255,8 +255,8 @@ select {
   border-radius: var(--radius);
 }
 
-.app-header-home:hover {
-  opacity: 0.8;
+.app-header-home:active .app-header-home-label {
+  color: var(--primary);
 }
 
 .icon-button {

@@ -450,7 +450,7 @@ export default function App() {
               <>
                 <button type="button" className="app-header-home" onClick={goHome} aria-label="ホーム">
                   <BalloonLogo />
-                  Puffy
+                  <span className="app-header-home-label">Puffy</span>
                 </button>
                 <button
                   type="button"
