@@ -29,7 +29,6 @@ export async function linkOAuthProvider(user: User, providerId: OAuthProviderId)
 }
 
 export async function signInOrThrow(auth: Auth, provider: AuthProvider): Promise<void> {
-  const { signInWithPopup } = await import("firebase/auth");
   try {
     await signInWithPopup(auth, provider);
   } catch (err) {
