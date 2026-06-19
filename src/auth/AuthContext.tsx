@@ -13,9 +13,15 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  type AuthCredential,
   type User,
 } from "firebase/auth";
-import { getLinkedProviderIds, linkOAuthProvider, signInOrThrow } from "./accountLinking";
+import {
+  completeAccountLink,
+  getLinkedProviderIds,
+  linkOAuthProvider,
+  signInOrThrow,
+} from "./accountLinking";
 import { authErrorMessage } from "./authErrors";
 import { createOAuthProvider } from "./providers";
 import { auth, isAuthEnabled } from "../lib/firebase";
@@ -33,6 +39,12 @@ interface AuthContextValue {
   linkWithGoogle: () => Promise<void>;
   linkWithGithub: () => Promise<void>;
   linkWithMicrosoft: () => Promise<void>;
+  completeAccountLink: (
+    existingMethod: string,
+    pendingCredential: AuthCredential,
+    email: string,
+    password?: string,
+  ) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -87,17 +99,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = useCallback(async () => {
     if (!auth) throw new Error("Auth is not initialized");
-    await signInOrThrow(auth, createOAuthProvider("google.com"));
+    await signInOrThrow(auth, createOAuthProvider("google.com"), "google.com");
   }, []);
 
   const signInWithGithub = useCallback(async () => {
     if (!auth) throw new Error("Auth is not initialized");
-    await signInOrThrow(auth, createOAuthProvider("github.com"));
+    await signInOrThrow(auth, createOAuthProvider("github.com"), "github.com");
   }, []);
 
   const signInWithMicrosoft = useCallback(async () => {
     if (!auth) throw new Error("Auth is not initialized");
-    await signInOrThrow(auth, createOAuthProvider("microsoft.com"));
+    await signInOrThrow(auth, createOAuthProvider("microsoft.com"), "microsoft.com");
   }, []);
 
   const linkWithGoogle = useCallback(async () => {
@@ -117,6 +129,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await linkOAuthProvider(user, "microsoft.com");
     refreshLinkedProviders();
   }, [user, refreshLinkedProviders]);
+
+  const completeAccountLinkFn = useCallback(
+    async (
+      existingMethod: string,
+      pendingCredential: AuthCredential,
+      email: string,
+      password?: string,
+    ) => {
+      if (!auth) throw new Error("Auth is not initialized");
+      await completeAccountLink(auth, existingMethod, pendingCredential, email, password);
+      refreshLinkedProviders();
+    },
+    [refreshLinkedProviders],
+  );
 
   const resetPassword = useCallback(async (email: string) => {
     if (!auth) throw new Error("Auth is not initialized");
@@ -147,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       linkWithGoogle,
       linkWithGithub,
       linkWithMicrosoft,
+      completeAccountLink: completeAccountLinkFn,
       resetPassword,
       logout,
     }),
@@ -162,6 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       linkWithGoogle,
       linkWithGithub,
       linkWithMicrosoft,
+      completeAccountLinkFn,
       resetPassword,
       logout,
     ],

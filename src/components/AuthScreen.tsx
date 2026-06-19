@@ -1,19 +1,31 @@
 import { useEffect, useState } from "react";
-import { BalloonLogo, GithubIcon, GoogleIcon, MicrosoftIcon } from "./icons";
+import { AccountLinkRequiredError } from "../auth/accountLinking";
+import { providerLabel, signInMethodLabel } from "../auth/providers";
 import { useAuth } from "../auth/AuthContext";
 import { hasLocalData } from "../sync/syncEngine";
+import { BalloonLogo, GithubIcon, GoogleIcon, MicrosoftIcon } from "./icons";
 
 type AuthMode = "login" | "signup" | "reset";
 
 export function AuthScreen() {
-  const { signIn, signUp, signInWithGoogle, signInWithGithub, signInWithMicrosoft, resetPassword } = useAuth();
+  const {
+    signIn,
+    signUp,
+    signInWithGoogle,
+    signInWithGithub,
+    signInWithMicrosoft,
+    completeAccountLink,
+    resetPassword,
+  } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [linkPassword, setLinkPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [localDataExists, setLocalDataExists] = useState(false);
+  const [pendingLink, setPendingLink] = useState<AccountLinkRequiredError | null>(null);
 
   useEffect(() => {
     void hasLocalData().then(setLocalDataExists);
@@ -43,11 +55,42 @@ export function AuthScreen() {
   const handleOAuthSignIn = async (action: () => Promise<void>) => {
     setError(null);
     setInfo(null);
+    setPendingLink(null);
     setSubmitting(true);
     try {
       await action();
     } catch (err) {
+      if (err instanceof AccountLinkRequiredError) {
+        setPendingLink(err);
+        return;
+      }
       setError(err instanceof Error ? err.message : "エラーが発生しました。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCompleteAccountLink = async () => {
+    if (!pendingLink) return;
+    const existingMethod = pendingLink.existingMethods[0];
+    if (!existingMethod) return;
+
+    setError(null);
+    setInfo(null);
+    setSubmitting(true);
+    try {
+      await completeAccountLink(
+        existingMethod,
+        pendingLink.pendingCredential,
+        pendingLink.email,
+        existingMethod === "password" ? linkPassword : undefined,
+      );
+      const linkedLabel = providerLabel(pendingLink.attemptedProviderId);
+      setPendingLink(null);
+      setLinkPassword("");
+      setInfo(`${linkedLabel}を連携してログインしました。`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "連携に失敗しました。");
     } finally {
       setSubmitting(false);
     }
@@ -103,6 +146,52 @@ export function AuthScreen() {
             <p className="field-error" role="alert">
               {error}
             </p>
+          )}
+          {pendingLink && (
+            <div className="auth-link-prompt" role="status">
+              <p>
+                <strong>{providerLabel(pendingLink.attemptedProviderId)}</strong> のアカウント（
+                {pendingLink.email}）は、既に{" "}
+                <strong>{signInMethodLabel(pendingLink.existingMethods[0] ?? "")}</strong>{" "}
+                で登録されています。連携してログインできます。
+              </p>
+              {pendingLink.existingMethods[0] === "password" && (
+                <div className="field-group">
+                  <label htmlFor="auth-link-password">パスワード</label>
+                  <input
+                    id="auth-link-password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={linkPassword}
+                    onChange={(e) => setLinkPassword(e.target.value)}
+                    minLength={6}
+                    required
+                  />
+                </div>
+              )}
+              <button
+                type="button"
+                className="button-primary auth-submit"
+                disabled={submitting}
+                onClick={() => void handleCompleteAccountLink()}
+              >
+                {submitting
+                  ? "連携中..."
+                  : `${signInMethodLabel(pendingLink.existingMethods[0] ?? "")}でログインして連携する`}
+              </button>
+              <button
+                type="button"
+                className="button-ghost auth-link-cancel"
+                disabled={submitting}
+                onClick={() => {
+                  setPendingLink(null);
+                  setLinkPassword("");
+                  setError(null);
+                }}
+              >
+                キャンセル
+              </button>
+            </div>
           )}
           {info && <p className="auth-info">{info}</p>}
 

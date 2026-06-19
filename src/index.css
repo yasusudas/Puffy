@@ -1428,6 +1428,27 @@ select {
   border-radius: var(--radius);
 }
 
+.auth-link-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--accent, #4a90d9) 8%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--accent, #4a90d9) 30%, var(--border));
+  border-radius: var(--radius);
+}
+
+.auth-link-prompt p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.auth-link-cancel {
+  align-self: center;
+}
+
 .auth-links {
   display: flex;
   flex-direction: column;

@@ -9,6 +9,10 @@ export type OAuthProviderId = "google.com" | "github.com" | "microsoft.com";
 
 export const OAUTH_PROVIDER_IDS: OAuthProviderId[] = ["google.com", "github.com", "microsoft.com"];
 
+export function isOAuthProviderId(method: string): method is OAuthProviderId {
+  return method === "google.com" || method === "github.com" || method === "microsoft.com";
+}
+
 export function createOAuthProvider(id: OAuthProviderId): AuthProvider {
   if (id === "google.com") return new GoogleAuthProvider();
   if (id === "github.com") return new GithubAuthProvider();
