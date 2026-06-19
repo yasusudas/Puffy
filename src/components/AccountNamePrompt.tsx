@@ -38,8 +38,8 @@ export function AccountNamePrompt({ onComplete, onSkip }: AccountNamePromptProps
 
   return (
     <ModalSheet title="アカウント名を設定" onClose={onSkip}>
-      <div className="account-name-prompt">
-        <p>表示用のアカウント名を決められます。メールアドレスとは別で、あとから設定画面で変更できます。</p>
+      <div className="modal-body account-name-prompt">
+        <p>表示用のアカウント名を決められます。あとから設定画面で変更できます。</p>
         <div className="field-group">
           <label htmlFor="account-name-input">アカウント名</label>
           <input
@@ -47,7 +47,6 @@ export function AccountNamePrompt({ onComplete, onSkip }: AccountNamePromptProps
             type="text"
             value={name}
             maxLength={MAX_ACCOUNT_NAME_LENGTH}
-            placeholder="例: やすだ"
             autoFocus
             onChange={(e) => {
               setName(e.target.value);
