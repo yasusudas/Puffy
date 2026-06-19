@@ -740,6 +740,7 @@ select {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  overflow-x: hidden;
 }
 
 @media (min-width: 600px) {
@@ -763,8 +764,10 @@ select {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overflow-x: hidden;
   animation: sheet-up 0.22s ease-out;
   padding-bottom: var(--safe-bottom);
+  min-width: 0;
 }
 
 @media (min-width: 600px) {
@@ -795,11 +798,17 @@ select {
 }
 
 .modal-body {
+  flex: 1;
+  min-height: 0;
   padding: 10px 16px 16px;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .field-group {
@@ -889,6 +898,17 @@ select {
   display: grid;
   grid-template-columns: repeat(13, minmax(0, 1fr));
   gap: 6px;
+}
+
+@media (max-width: 599px) {
+  .task-color-swatches {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .task-color-swatches .color-swatch-default {
+    font-size: 10px;
+  }
 }
 
 .task-color-swatches .color-swatch {
