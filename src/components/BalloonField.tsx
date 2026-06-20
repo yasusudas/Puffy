@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Folder, Task } from "../types";
 import { colorHex, textColorFor, UNFILED_COLOR, WARNING_COLOR } from "../lib/colors";
 import { formatDue, formatOverdue, formatTimeLeft } from "../lib/time";
-import { diameterForProgress, inflationProgress } from "../lib/size";
+import { crowdScale, diameterForProgress, inflationProgress } from "../lib/size";
 import { BalloonEngine, generateInitialLayout, placeNewBalloon, EDGE_PAD } from "../physics/engine";
 
 const TAP_THRESHOLD_PX = 8;
@@ -21,6 +21,8 @@ interface BalloonFieldProps {
   folders: Map<string, Folder>;
   now: Date;
   poppingIds: Set<string>;
+  /** 期限超過かつゴミ箱に入っていない (active) 風船の数。多いほど風船全体を拡大する */
+  overdueCount: number;
   onTapTask: (id: string) => void;
 }
 
@@ -39,7 +41,7 @@ interface DragState {
   dragging: boolean;
 }
 
-export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: BalloonFieldProps) {
+export function BalloonField({ tasks, folders, now, poppingIds, overdueCount, onTapTask }: BalloonFieldProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<BalloonEngine | null>(null);
@@ -135,6 +137,8 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
   const balloons = useMemo(() => {
     const perf = performance.now();
     const nowMs = now.getTime();
+    // 期限超過の風船が多いほど全風船を一様に拡大する倍率
+    const scale = crowdScale(overdueCount);
     return tasks.map((task) => {
       const realDueMs = new Date(task.dueAt).getTime();
       const anim = animsRef.current.get(task.id);
@@ -149,7 +153,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
       const overdue = nowMs >= effDueMs;
       const imminent = !overdue && effDueMs - nowMs <= IMMINENT_MS;
       const eased = inflationProgress(effIso, task.inflationWindowHours, now);
-      const diameter = width > 0 ? diameterForProgress(eased, width) : 100;
+      const diameter = width > 0 ? diameterForProgress(eased, width, scale) : 100;
       const folder = task.folderId ? folders.get(task.folderId) : undefined;
       const folderColor = folder ? colorHex(folder.colorId) : UNFILED_COLOR;
       // タスク個別の色が指定されていればフォルダ色より優先する
@@ -173,7 +177,7 @@ export function BalloonField({ tasks, folders, now, poppingIds, onTapTask }: Bal
     });
     // frame はアニメーション中の毎フレーム再計算のためのトリガー
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks, folders, now, width, frame]);
+  }, [tasks, folders, now, width, frame, overdueCount]);
 
   // 配置: 幅変更時のみ全再配置。風船の増減では既存の home/位置を保持する。
   useEffect(() => {

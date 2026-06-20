@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   balloonDiameter,
+  crowdScale,
+  CROWD_SCALE_MAX,
+  CROWD_SCALE_PER_TASK,
   diameterForProgress,
   inflationProgress,
   isImminent,
@@ -108,6 +111,44 @@ describe("balloonDiameter", () => {
 
   it("最大直径は160pxを超えない", () => {
     expect(balloonDiameter(10, 1200)).toBeLessThanOrEqual(160);
+  });
+});
+
+describe("crowdScale", () => {
+  it("超過0件は等倍", () => {
+    expect(crowdScale(0)).toBe(1);
+  });
+
+  it("超過1件目から倍率が効く", () => {
+    expect(crowdScale(1)).toBeCloseTo(1 + CROWD_SCALE_PER_TASK);
+  });
+
+  it("件数が増えるほど倍率が上がる", () => {
+    expect(crowdScale(2)).toBeCloseTo(1 + 2 * CROWD_SCALE_PER_TASK);
+    expect(crowdScale(2)).toBeGreaterThan(crowdScale(1));
+    expect(crowdScale(3)).toBeGreaterThan(crowdScale(2));
+  });
+
+  it("上限で頭打ちになる", () => {
+    expect(crowdScale(1000)).toBe(CROWD_SCALE_MAX);
+  });
+});
+
+describe("diameterForProgress (crowd scale)", () => {
+  it("scale=1 は従来どおり", () => {
+    expect(diameterForProgress(0, 390, 1)).toBeCloseTo(diameterForProgress(0, 390));
+    expect(diameterForProgress(1, 390, 1)).toBeCloseTo(diameterForProgress(1, 390));
+  });
+
+  it("scaleが大きいほど直径が大きくなる", () => {
+    const base = diameterForProgress(0.5, 390, 1);
+    const scaled = diameterForProgress(0.5, 390, 1.4);
+    expect(scaled).toBeGreaterThan(base);
+    expect(scaled).toBeCloseTo(base * 1.4);
+  });
+
+  it("フィールド幅の50%を超えない", () => {
+    expect(diameterForProgress(1, 390, CROWD_SCALE_MAX)).toBeLessThanOrEqual(390 * 0.5);
   });
 });
 

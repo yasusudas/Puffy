@@ -188,6 +188,8 @@ export default function App() {
     [visibleTasks],
   );
 
+  // 風船の拡大倍率は、期限超過かつゴミ箱に入っていない (= active) 風船の数で決める。
+  // フォルダ絞り込みには左右されず、全体の超過タスク数を使う。
   const allActive = useMemo(() => tasks.filter((t) => t.status === "active"), [tasks]);
   const overdueCount = useMemo(() => allActive.filter((t) => isOverdue(t.dueAt, now)).length, [allActive, now]);
 
@@ -350,6 +352,7 @@ export default function App() {
                 folders={folderMap}
                 now={now}
                 poppingIds={poppingIds}
+                overdueCount={overdueCount}
                 onTapTask={setDetailTaskId}
               />
               {activeTasks.length === 0 && (

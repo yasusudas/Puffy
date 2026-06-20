@@ -60,16 +60,31 @@ export function balloonDiameter(level: number, fieldWidth: number): number {
 }
 
 /**
+ * 期限超過 (かつゴミ箱に入っていない active) の風船が多いほど風船全体を拡大する倍率。
+ * 超過0件のときは等倍 (1.0)、1件目から加算が効き、件数ごとに加算して上限で頭打ちにする。
+ * 「やることが溜まるほど風船のプレッシャーが大きくなる」体験を表現する。
+ */
+export const CROWD_SCALE_PER_TASK = 0.1;
+export const CROWD_SCALE_MAX = 1.6;
+export function crowdScale(overdueCount: number): number {
+  const n = Math.max(0, overdueCount);
+  return Math.min(CROWD_SCALE_MAX, 1 + n * CROWD_SCALE_PER_TASK);
+}
+
+/**
  * 連続進捗 (inflationProgress の戻り値 [0,1]) から直径を求める。
  * 期限変更時の直径アニメーションを段階の境目でカクつかせないために使う。
  * 端点 (0→最小, 1→最大) は balloonDiameter のレベル1・10と一致する。
+ * scale は未達成タスク数による拡大倍率 (crowdScale)。溢れ防止に
+ * フィールド幅の50%を絶対上限とする。
  */
-export function diameterForProgress(easedProgress: number, fieldWidth: number): number {
+export function diameterForProgress(easedProgress: number, fieldWidth: number, scale = 1): number {
   const refWidth = Math.min(fieldWidth, 480);
   const max = Math.max(88, Math.min(fieldWidth * 0.35, 160));
   const min = Math.min(Math.max(88, refWidth * 0.19), max);
   const p = Math.min(1, Math.max(0, easedProgress));
-  return min + (max - min) * p;
+  const base = min + (max - min) * p;
+  return Math.min(base * scale, fieldWidth * 0.5);
 }
 
 /** 並び順: 期限超過が先頭、次に期限が近い順、同じ期限なら更新が新しい順 */
