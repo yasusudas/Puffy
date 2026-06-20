@@ -16,8 +16,8 @@ export interface BalloonBody {
   dragging: boolean;
 }
 
-const FLOAT_FORCE_X = 4;
-const FLOAT_FORCE_Y = 5;
+const FLOAT_FORCE_X = 5;
+const FLOAT_FORCE_Y = 6;
 const HOME_SPRING_X = 0.12;
 const HOME_SPRING_Y = 0.65;
 const DAMPING = 2.1;
@@ -134,8 +134,8 @@ export class BalloonEngine {
     for (const b of bodies) {
       if (b.dragging) continue;
       if (!this.reducedMotion) {
-        b.vx += Math.cos(this.time * 0.85 + b.phase) * FLOAT_FORCE_X * dt;
-        b.vy += Math.sin(this.time * 0.65 + b.phase * 1.2) * FLOAT_FORCE_Y * dt;
+        b.vx += Math.cos(this.time * 1.05 + b.phase) * FLOAT_FORCE_X * dt;
+        b.vy += Math.sin(this.time * 0.8 + b.phase * 1.2) * FLOAT_FORCE_Y * dt;
       }
       b.vx += (b.homeX - b.x) * HOME_SPRING_X * dt;
       b.vy += (b.homeY - b.y) * HOME_SPRING_Y * dt;

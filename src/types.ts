@@ -61,7 +61,7 @@ export type FolderFilter = "all" | "none" | string;
 export const SCHEMA_VERSION = 1;
 
 export const APP_VERSION = "Ver. 2.5";
-export const APP_UPDATED_AT = "2026/06/20 00:12";
+export const APP_UPDATED_AT = "2026/06/20 12:15";
 
 export const TRASH_RETENTION_DAYS = 30;
 export const NOTIFICATION_OFFSETS: NotificationOffsetMinutes[] = [2880, 1440, 360, 60, 0];
